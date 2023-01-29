@@ -30,33 +30,58 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         get() = _postCreated
 
     init {
-     loadPosts()
+        loadPosts()
     }
 
     fun loadPosts() {
-        thread {
-            // Начинаем загрузку
-            _data.postValue(FeedModel(loading = true))
-            try {
-                // Данные успешно получены
-                val posts = repository.getAll()
-                FeedModel(posts = posts, empty = posts.isEmpty())
-            } catch (e: IOException) {
-                // Получена ошибка
-                FeedModel(error = true)
-            }.also(_data::postValue)
-        }
+        _data.value = FeedModel(loading = true)
+        repository.getAllAsync(object : PostRepository.GetAllCallback<List<Post>> {
+            override fun onSuccess(posts: List<Post>) {
+                _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
+            }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
+
+    fun removeById(post: Post) {
+        // Очень оптимистический вариант)
+
+        _data.postValue(
+            _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                .filter { it.id != post.id }
+            )
+        )
+        _data.value = FeedModel(loading = true)
+        repository.removeById(object : PostRepository.GetAllCallback<List<Post>> {
+            override fun onSuccess(posts: List<Post>) {
+                // TODO: Пытался тут получить новый список постов, но так и не понял как это сделать одним запросом.
+            }
+
+            override fun onError(e: Exception) {}
+
+        }, post)
+    }
+
 
     fun save() {
         edited.value?.let {
-            thread {
-                repository.save(it)
+                repository.save(object : PostRepository.GetAllCallback<List<Post>> {
+                        override fun onSuccess(posts: List<Post>) {
+                            // TODO: Пытался тут получить новый список постов, но так и не понял как это сделать одним запросом.
+                        }
+
+                        override fun onError(e: Exception) {}
+
+                },post = it)
                 _postCreated.postValue(Unit)
             }
-        }
         edited.value = empty
-    }
+        }
+
+
 
     fun edit(post: Post) {
         edited.value = post
@@ -71,30 +96,20 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun likeById(post: Post) {
-        thread {
-            val likedPost = repository.likeById(post)
-            _data.postValue(
-                _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                    .map  { if (it.id == likedPost.id) likedPost else it }
+        repository.likeById(object : PostRepository.GetAllCallback<Post> {
+            override fun onSuccess(post: Post) {
+                _data.postValue(
+                    _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                        .map { if (it.id == post.id) post else it }
+                    )
                 )
-            )
-        }
+            }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        }, post)
+
     }
 
-    fun removeById(id: Long) {
-        thread {
-            // Оптимистичная модель
-            val old = _data.value?.posts.orEmpty()
-            _data.postValue(
-                _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                    .filter { it.id != id }
-                )
-            )
-            try {
-                repository.removeById(id)
-            } catch (e: IOException) {
-                _data.postValue(_data.value?.copy(posts = old))
-            }
-        }
-    }
 }
