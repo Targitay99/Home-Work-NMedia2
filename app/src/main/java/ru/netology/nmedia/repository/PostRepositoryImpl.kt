@@ -58,19 +58,7 @@ class PostRepositoryImpl : PostRepository {
                     callback.onError(e)
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-
-                    // TODO Здесь не могу получить список постов, я так понимаю что из-за запроса
-                    //  .delete()
-                    //  .url("${BASE_URL}/api/slow/posts/$id")
-
-                //    val body = response.body?.string() ?: throw RuntimeException("body is null")
-                //    try {
-                //        callback.onSuccess(gson.fromJson(body, typeToken.type))
-                //    } catch (e: Exception) {
-                //        callback.onError(e)
-                //    }
-                }
+                override fun onResponse(call: Call, response: Response) {}
             })
     }
 
@@ -102,7 +90,7 @@ class PostRepositoryImpl : PostRepository {
             })
     }
 
-    override fun save(callback: PostRepository.GetAllCallback<List<Post>>, post: Post) {
+    override fun save(callback: PostRepository.GetAllCallback<Post>, post: Post) {
         val request: Request = Request.Builder()
             .post(gson.toJson(post).toRequestBody(jsonType))
             .url("${BASE_URL}/api/posts")
@@ -114,15 +102,7 @@ class PostRepositoryImpl : PostRepository {
                     callback.onError(e)
                 }
 
-                override fun onResponse(call: Call, response: Response) {
-                    // TODO Здесь не могу получить список постов, я так понимаю что из-за запроса
-                    //val body = response.body?.string() ?: throw RuntimeException("body is null")
-                    //    try {
-                    //        callback.onSuccess(gson.fromJson(body, typeToken.type))
-                    //    } catch (e: Exception) {
-                    //        callback.onError(e)
-                    //    }
-                }
+                override fun onResponse(call: Call, response: Response) {}
             })
     }
 }
