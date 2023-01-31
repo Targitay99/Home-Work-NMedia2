@@ -102,7 +102,10 @@ class PostRepositoryImpl : PostRepository {
                     callback.onError(e)
                 }
 
-                override fun onResponse(call: Call, response: Response) {}
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body?.string() ?: throw RuntimeException("body is null")
+                    callback.onSuccess(gson.fromJson(body, Post::class.java))
+                }
             })
     }
 }
