@@ -83,6 +83,18 @@
             app:layout_constraintTop_toBottomOf="@id/header"
             tools:text="@sample/posts.json/data/content" />
 
+        <ImageView
+            android:id="@+id/attachment"
+            android:layout_width="0dp"
+            android:visibility="gone"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/content"
+            app:layout_constraintBottom_toBottomOf="@id/footer"
+            tools:srcCompat="@tools:sample/avatars[3]" />
+
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/footer"
             android:layout_width="wrap_content"
@@ -116,7 +128,12 @@
             style="@style/Widget.AppTheme.IconButton"
             />
 
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
