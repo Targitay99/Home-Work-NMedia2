@@ -9,6 +9,7 @@ import ru.netology.nmedia.R
 fun ImageView.load(url: String, vararg transforms: BitmapTransformation = emptyArray()) =
     Glide.with(this)
         .load(url)
+        .placeholder(R.drawable.ic_baseline_cloud_download_24)
         .error(R.drawable.ic_baseline_error_24)
         .timeout(10_000)
         .transform(*transforms)
