@@ -41,7 +41,7 @@ class PostViewHolder(
     private val binding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
 ) : RecyclerView.ViewHolder(binding.root) {
-    private val BASE_URL: String = "http://10.0.2.2:9999"
+
 
     fun bind(post: Post) {
         binding.apply {
@@ -54,13 +54,13 @@ class PostViewHolder(
 
             if (post.attachment != null) {
                 binding.attachment.isVisible = true
-                binding.attachment.load("${BASE_URL}/images/${post.attachment.url}")
+                binding.attachment.load("${BuildConfig.BASE_URL}/images/${post.attachment.url}")
             } else {
                 binding.attachment.isVisible = false
             }
 
 
-            avatar.loadCircleCrop("${BASE_URL}/avatars/${post.authorAvatar}")
+            avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
 
 
             menu.setOnClickListener {

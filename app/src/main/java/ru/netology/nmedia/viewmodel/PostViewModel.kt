@@ -1,13 +1,14 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.*
+import ru.netology.nmedia.R
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
-import java.io.IOException
-import kotlin.concurrent.thread
+
 
 private val empty = Post(
     id = 0,
@@ -36,7 +37,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPosts() {
         _data.value = FeedModel(loading = true)
-        repository.getAllAsync(object : PostRepository.GetAllCallback<List<Post>> {
+        repository.getAllAsync(object : PostRepository.Callback<List<Post>> {
             override fun onSuccess(posts: List<Post>) {
                 _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
             }
@@ -57,8 +58,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         )
         _data.value = FeedModel(loading = true)
 
-        repository.removeById(object : PostRepository.GetAllCallback<List<Post>> {
-            override fun onSuccess(posts: List<Post>) {}
+        repository.removeById(object : PostRepository.Callback<Unit> {
+            override fun onSuccess(unit: Unit) {}
 
             override fun onError(e: Exception) {
                 _data.postValue(_data.value?.copy(posts = old))
@@ -68,13 +69,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() {
         edited.value?.let {
-            repository.save(object : PostRepository.GetAllCallback<Post> {
+            repository.save(object : PostRepository.Callback<Post> {
                 override fun onSuccess(posts: Post) {
                     _postCreated.postValue(Unit)
                 }
 
                 override fun onError(e: Exception) {
-                    _data.postValue(FeedModel(error = true))
+                    Toast.makeText(getApplication(), R.string.networkEerror, Toast.LENGTH_SHORT).show()
+                    //_data.postValue(FeedModel(error = true))
                 }
 
             }, post = it)
@@ -83,7 +85,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun edit(post: Post) {
-        edited.value = post
+        //  edited.value = post
     }
 
     fun changeContent(content: String) {
@@ -95,7 +97,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun likeById(post: Post) {
-        repository.likeById(object : PostRepository.GetAllCallback<Post> {
+        repository.likeById(object : PostRepository.Callback<Post> {
             override fun onSuccess(post: Post) {
                 _data.postValue(
                     _data.value?.copy(posts = _data.value?.posts.orEmpty()
@@ -105,7 +107,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Exception) {
-                _data.postValue(FeedModel(error = true))
+                Toast.makeText(getApplication(), R.string.Error, Toast.LENGTH_SHORT).show()
             }
         }, post)
     }
