@@ -2,7 +2,6 @@ package ru.netology.nmedia.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,13 +9,13 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
-
 
 class FeedFragment : Fragment() {
 
@@ -55,32 +54,23 @@ class FeedFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
-            binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
-        }
-
-        binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
-        }
-
-        binding.swipeRefreshLayout.setOnRefreshListener {
-
-            var handler = Handler()
-            var runnable = Runnable {
-                viewModel.loadPosts()
-                binding.swipeRefreshLayout.isRefreshing = false
+            binding.swiperefresh.isRefreshing = state.refreshing
+            if (state.error) {
+                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                    .show()
             }
-            handler.postDelayed(
-                runnable, 0.toLong()
-            )
         }
-        binding.swipeRefreshLayout.setColorSchemeResources(
-            android.R.color.holo_blue_bright
-        )
+        viewModel.data.observe(viewLifecycleOwner) { data ->
+            adapter.submitList(data.posts)
+            binding.emptyText.isVisible = data.empty
+        }
 
+        binding.swiperefresh.setOnRefreshListener {
+            viewModel.refreshPosts()
+        }
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
@@ -89,3 +79,5 @@ class FeedFragment : Fragment() {
         return binding.root
     }
 }
+
+

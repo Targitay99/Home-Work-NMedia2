@@ -3,7 +3,6 @@ package ru.netology.nmedia.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,9 +10,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.view.load
 import ru.netology.nmedia.view.loadCircleCrop
-import java.net.URL
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -37,31 +34,18 @@ class PostsAdapter(
 }
 
 class PostViewHolder(
-
     private val binding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
 ) : RecyclerView.ViewHolder(binding.root) {
-
 
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
             published.text = post.published
             content.text = post.content
-            // в адаптере
+            avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
-
-            if (post.attachment != null) {
-                binding.attachment.isVisible = true
-                binding.attachment.load("${BuildConfig.BASE_URL}/images/${post.attachment.url}")
-            } else {
-                binding.attachment.isVisible = false
-            }
-
-
-            avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
-
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
@@ -85,7 +69,6 @@ class PostViewHolder(
 
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
-
             }
 
             share.setOnClickListener {
@@ -93,7 +76,6 @@ class PostViewHolder(
             }
         }
     }
-
 }
 
 class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
