@@ -9,7 +9,9 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.transition.Visibility
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.delay
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -53,7 +55,9 @@ class FeedFragment : Fragment() {
                 startActivity(shareIntent)
             }
         })
+
         binding.list.adapter = adapter
+
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
             binding.swiperefresh.isRefreshing = state.refreshing
@@ -63,12 +67,27 @@ class FeedFragment : Fragment() {
                     .show()
             }
         }
+
         viewModel.data.observe(viewLifecycleOwner) { data ->
-            adapter.submitList(data.posts)
+            adapter.submitList(data.posts.filter { post -> !post.hidden })
             binding.emptyText.isVisible = data.empty
         }
 
+        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
+
+            if (state == 1) binding.newPostButton.visibility = View.VISIBLE
+
+            println("Newer: $state")
+        }
+
+        binding.newPostButton.setOnClickListener {
+            it.visibility = View.GONE
+            viewModel.viewNewPost()
+            binding.list.smoothScrollToPosition(0)
+        }
+
         binding.swiperefresh.setOnRefreshListener {
+            binding.newPostButton.visibility = View.GONE
             viewModel.refreshPosts()
         }
 

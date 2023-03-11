@@ -23,4 +23,5 @@
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="networkEerror">Проверьте подключение к сети и повторите загрузку.</string>
     <string name="Error">Ошибка</string>
+    <string name="new_posts">Новые посты</string>
 </resources>
