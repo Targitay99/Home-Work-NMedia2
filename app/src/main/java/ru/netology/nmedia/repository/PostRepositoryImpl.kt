@@ -4,13 +4,16 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 //import okio.IOException
 import ru.netology.nmedia.api.*
 import ru.netology.nmedia.dao.PostDao
-import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
+import ru.netology.nmedia.enumeration.AttachmentType
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
@@ -47,9 +50,11 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
 
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(body
-                .toEntity()
-                .map { it.copy(hidden = true) }
+
+            dao.insert(
+                body
+                    .toEntity()
+                // .map { it.copy(hidden = true) }
             )
             emit(body.size)
         }
@@ -65,7 +70,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
 
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body))
+            dao.insert(PostEntity.fromDto(body.copy()))
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -91,10 +96,10 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         val id = post.id
         dao.likeById(id)
         try {
-            if (post.likedByMe){
+            if (post.likedByMe) {
                 PostsApi.service.dislikeById(id)
-            }else PostsApi.service.likeById(id)
-        }catch (e: IOException) {
+            } else PostsApi.service.likeById(id)
+        } catch (e: IOException) {
             dao.likeById(id)
             throw NetworkError
 
@@ -106,5 +111,40 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun viewNewPost() {
         dao.viewNewPost()
+    }
+
+    override suspend fun saveWithAttachment(post: Post, upload: MediaUpload) {
+        try {
+            val media = upload(upload)
+            // TODO: add support for other types
+            val postWithAttachment =
+                post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
+            save(postWithAttachment)
+        } catch (e: AppError) {
+            throw e
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
+
+    override suspend fun upload(upload: MediaUpload): Media {
+        try {
+            val media = MultipartBody.Part.createFormData(
+                "file", upload.file.name, upload.file.asRequestBody()
+            )
+
+            val response = PostsApi.service.upload(media)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+
+            return response.body() ?: throw ApiError(response.code(), response.message())
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
     }
 }

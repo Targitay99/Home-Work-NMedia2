@@ -17,11 +17,16 @@ import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
+
+    companion object {
+        var Bundle.urlArg: String? by StringArg
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,6 +44,11 @@ class FeedFragment : Fragment() {
                 viewModel.likeById(post)
             }
 
+            override fun photoView(post: Post) {
+                findNavController().navigate(R.id.action_feedFragment_to_photoView,
+                Bundle().apply { urlArg =  post.attachment?.url })
+            }
+
             override fun onRemove(post: Post) {
                 viewModel.removeById(post)
             }
@@ -54,6 +64,7 @@ class FeedFragment : Fragment() {
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
+
         })
 
         binding.list.adapter = adapter
@@ -69,7 +80,9 @@ class FeedFragment : Fragment() {
         }
 
         viewModel.data.observe(viewLifecycleOwner) { data ->
-            adapter.submitList(data.posts.filter { post -> !post.hidden })
+            adapter.submitList(data.posts
+                .filter { post -> !post.hidden }
+            )
             binding.emptyText.isVisible = data.empty
         }
 
@@ -79,6 +92,8 @@ class FeedFragment : Fragment() {
 
             println("Newer: $state")
         }
+
+
 
         binding.newPostButton.setOnClickListener {
             it.visibility = View.GONE

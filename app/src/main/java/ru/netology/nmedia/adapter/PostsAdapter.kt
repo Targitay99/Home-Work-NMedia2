@@ -1,15 +1,19 @@
 package ru.netology.nmedia.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.BuildConfig
+import ru.netology.nmedia.BuildConfig.BASE_URL
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.view.load
 import ru.netology.nmedia.view.loadCircleCrop
 
 interface OnInteractionListener {
@@ -17,6 +21,7 @@ interface OnInteractionListener {
     fun onEdit(post: Post) {}
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
+    fun photoView(post: Post) {}
 }
 
 class PostsAdapter(
@@ -69,6 +74,17 @@ class PostViewHolder(
                 }.show()
             }
 
+            if (post.attachment != null) {
+                binding.attachment.visibility = View.VISIBLE
+                binding.attachment.load("${BuildConfig.BASE_URL}/media/${post.attachment.url}")
+            } else {
+                binding.attachment.visibility = View.GONE
+            }
+
+            attachment.setOnClickListener {
+                onInteractionListener.photoView(post)
+            }
+
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
             }
@@ -77,7 +93,6 @@ class PostViewHolder(
                 onInteractionListener.onShare(post)
             }
         }
-
 
     }
 }
