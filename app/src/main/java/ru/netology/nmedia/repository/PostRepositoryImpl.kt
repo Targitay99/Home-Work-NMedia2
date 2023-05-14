@@ -54,7 +54,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             dao.insert(
                 body
                     .toEntity()
-                // .map { it.copy(hidden = true) }
+                    .map { it.copy(hidden = true) }
             )
             emit(body.size)
         }
@@ -62,21 +62,41 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         .catch { e -> throw AppError.from(e) }
         .flowOn(Dispatchers.Default)
 
+
     override suspend fun save(post: Post) {
         try {
+            post
             val response = PostsApi.service.save(post)
+            post
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
 
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body.copy()))
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
             throw UnknownError
         }
     }
+
+    override suspend fun saveWithAttachment(post: Post, upload: MediaUpload) {
+        try {
+            val media = upload(upload)
+            // TODO: add support for other types
+            val postWithAttachment =
+                post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
+            save(postWithAttachment)
+        } catch (e: AppError) {
+            throw e
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
+
 
     override suspend fun removeById(post: Post) {
         dao.removeById(post.id)
@@ -113,21 +133,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         dao.viewNewPost()
     }
 
-    override suspend fun saveWithAttachment(post: Post, upload: MediaUpload) {
-        try {
-            val media = upload(upload)
-            // TODO: add support for other types
-            val postWithAttachment =
-                post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
-            save(postWithAttachment)
-        } catch (e: AppError) {
-            throw e
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        }
-    }
 
     override suspend fun upload(upload: MediaUpload): Media {
         try {

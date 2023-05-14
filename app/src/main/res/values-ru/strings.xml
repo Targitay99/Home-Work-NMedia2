@@ -29,4 +29,18 @@
     <string name="remove">Удалить</string>
     <string name="description_select_photo">Выбрать фото</string>
     <string name="menu_save">Сохранить</string>
+    <string name="singout">Выйти</string>
+    <string name="singIn">Вход</string>
+    <string name="singUp">Регистрация</string>
+    <string name="Enter_name">Введите логин и пароль</string>
+    <string name="name">Имя</string>
+    <string name="login" translatable="false">Логин</string>
+    <string name="password_verification">Проверка пароля</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="cancel" translatable="false">отмена</string>
+    <string name="only_for_registered_users">только для зарегистрированных пользователей</string>
+    <string name="are_you_suare">Вы уверенны?</string>
+    <string name="yes">да</string>
+    <string name="passwords_dont_match">пароли не совпад</string>
+
 </resources>
