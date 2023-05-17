@@ -19,15 +19,23 @@ import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
+@Singleton
+class PostRepositoryImpl @Inject constructor(
+    private val dao: PostDao,
+    private val apiService: PostsApiService
+    ) : PostRepository {
+
+
     override val data = dao.getAll()
         .map(List<PostEntity>::toDto)
         .flowOn(Dispatchers.Default)
 
     override suspend fun getAll() {
         try {
-            val response = PostsApi.service.getAll()
+            val response = apiService.getAll()
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -44,7 +52,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override fun getNewerCount(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000L)
-            val response = PostsApi.service.getNewer(id)
+            val response = apiService.getNewer(id)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -66,7 +74,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun save(post: Post) {
         try {
             post
-            val response = PostsApi.service.save(post)
+            val response = apiService.save(post)
             post
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
@@ -101,7 +109,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun removeById(post: Post) {
         dao.removeById(post.id)
         try {
-            PostsApi.service.removeById(post.id)
+            apiService.removeById(post.id)
         } catch (e: IOException) {
             dao.insert(PostEntity.fromDto(post))
             throw NetworkError
@@ -117,8 +125,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         dao.likeById(id)
         try {
             if (post.likedByMe) {
-                PostsApi.service.dislikeById(id)
-            } else PostsApi.service.likeById(id)
+                apiService.dislikeById(id)
+            } else apiService.likeById(id)
         } catch (e: IOException) {
             dao.likeById(id)
             throw NetworkError
@@ -140,7 +148,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 "file", upload.file.name, upload.file.asRequestBody()
             )
 
-            val response = PostsApi.service.upload(media)
+            val response = apiService.upload(media)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }

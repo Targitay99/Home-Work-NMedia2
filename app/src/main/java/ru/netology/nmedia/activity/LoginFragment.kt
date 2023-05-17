@@ -8,11 +8,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentLoginBinding
 import ru.netology.nmedia.dto.User
 import ru.netology.nmedia.viewmodel.AuthViewModel
 
+@AndroidEntryPoint
 class LoginFragment : Fragment() {
 
     private val viewModel: AuthViewModel by activityViewModels()
@@ -35,33 +37,40 @@ class LoginFragment : Fragment() {
 
             if (user.login.isNotEmpty() && user.password.isNotEmpty()) {
                 viewModel.singIn(user)
-                findNavController().navigateUp()
+               // findNavController().navigateUp()
             } else Toast.makeText(context, getString(R.string.Enter_name), Toast.LENGTH_LONG)
                 .show()
         }
 
         viewModel.dataState.observe(viewLifecycleOwner) {
             when (it) {
-                0 -> findNavController().navigateUp()
+                0 -> {
+                    findNavController().navigateUp()
+                    viewModel._dataState.value = -1
+                }
                 -1 -> {
                     //      Toast.makeText(context, "1", Toast.LENGTH_LONG)
                     //          .show()
                 }
                 1 -> {
-                    Toast.makeText(context, R.string.Error, Toast.LENGTH_LONG)
+                    Toast.makeText(context, R.string.Invalid_username_or_password, Toast.LENGTH_LONG)
                         .show()
+                    viewModel._dataState.value = -1
                 }
                 2 -> {
                     Toast.makeText(context, R.string.Error, Toast.LENGTH_LONG)
                         .show()
+                    viewModel._dataState.value = -1
                 }
                 3 -> {
                     Toast.makeText(context, R.string.Error, Toast.LENGTH_LONG)
                         .show()
+                    viewModel._dataState.value = -1
                 }
                 else -> {
                     Toast.makeText(context, R.string.error_loading, Toast.LENGTH_LONG)
                         .show()
+                    viewModel._dataState.value = -1
                 }
             }
         }

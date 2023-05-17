@@ -42,5 +42,7 @@
     <string name="are_you_suare">Вы уверенны?</string>
     <string name="yes">да</string>
     <string name="passwords_dont_match">пароли не совпад</string>
+    <string name="Invalid_username_or_password">Не верный логин или пароль.</string>
+
 
 </resources>

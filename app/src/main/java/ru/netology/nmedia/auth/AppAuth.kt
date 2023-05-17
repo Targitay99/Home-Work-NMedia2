@@ -2,13 +2,26 @@ package ru.netology.nmedia.auth
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.*
+import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dto.User
 import ru.netology.nmedia.model.AuthModel
 import ru.netology.nmedia.viewmodel.AuthViewModel
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppAuth private constructor(context: Context) {
-    private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+@Singleton
+class AppAuth @Inject constructor(
+    @ApplicationContext
+    private val context: Context,
+) {
+    private val prefs = context.getSharedPreferences("auth",
+        Context.MODE_PRIVATE)
     private val _authStateFlow: MutableStateFlow<AuthModel>
 
 
@@ -24,6 +37,21 @@ class AppAuth private constructor(context: Context) {
 
     val authStateFlow = _authStateFlow.asStateFlow()
 
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface AppAuthEntryPoint {
+        fun apiService(): PostsApiService
+    }
+
+//    private fun getApiService(context: Context): PostsApiService{
+//        val hiltEntryPoint = EntryPointAccessors.fromApplication(
+//            context,
+//            AppAuthEntryPoint::class.java
+//        )
+//        return hiltEntryPoint.apiService()
+//    }
+
+    @Synchronized
     fun setUser(user: AuthModel){
         _authStateFlow.value = user
         prefs.edit{
@@ -32,13 +60,11 @@ class AppAuth private constructor(context: Context) {
         }
     }
 
-
-
+    @Synchronized
     fun removeUser(){
         _authStateFlow.value = AuthModel()
         prefs.edit{clear()}
     }
-
 
     companion object {
         private const val ID_KEY = "ID_KEY"
@@ -47,14 +73,13 @@ class AppAuth private constructor(context: Context) {
         @Volatile
         private var instance: AppAuth? = null
 
-        @Synchronized
+ //      @Synchronized
+ //      fun initAppAuth(context: Context): AppAuth{
+ //          return instance ?: AppAuth(context).apply { instance = this }
+ //      }
 
-        fun initAppAuth(context: Context): AppAuth{
-            return instance ?: AppAuth(context).apply { instance = this }
-        }
-
-        fun getInstance():AppAuth = requireNotNull(instance){"initAppAuth was not invoked"}
-
-    }
+ //      fun getInstance():AppAuth = requireNotNull(instance){"initAppAuth was not invoked"}
+  }
 }
+
 

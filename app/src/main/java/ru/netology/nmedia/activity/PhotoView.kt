@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.urlArg
@@ -14,7 +15,7 @@ import ru.netology.nmedia.databinding.FragmentPhotoViewBinding
 import ru.netology.nmedia.view.load
 import ru.netology.nmedia.viewmodel.PostViewModel
 
-
+@AndroidEntryPoint
 class PhotoView : Fragment() {
 
     //private val viewModel: PostViewModel by activityViewModels()

@@ -11,21 +11,28 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
-
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FeedFragment : Fragment() {
+
 
     private val viewModel: PostViewModel by activityViewModels()
     private val authViewModel: AuthViewModel by viewModels()
+
+    @Inject
+    lateinit var appAuth: AppAuth
 
 
     companion object {
@@ -117,7 +124,7 @@ class FeedFragment : Fragment() {
                             AlertDialog.Builder(context)
                                 .setTitle(R.string.are_you_suare)
                                 .setPositiveButton(R.string.yes) { _, _ ->
-                                    AppAuth.getInstance().removeUser()
+                                    appAuth.removeUser()
                                 }
                                 .setNegativeButton(R.string.cancel) {dialog, _->
                                     dialog.cancel()

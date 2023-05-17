@@ -13,12 +13,14 @@ import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.PostViewModel
 
+@AndroidEntryPoint
 class NewPostFragment : Fragment() {
 
     companion object {
@@ -26,7 +28,6 @@ class NewPostFragment : Fragment() {
     }
 
     private val viewModel: PostViewModel by activityViewModels()
-
     private var fragmentBinding: FragmentNewPostBinding? = null
 
     override fun onCreateView(
