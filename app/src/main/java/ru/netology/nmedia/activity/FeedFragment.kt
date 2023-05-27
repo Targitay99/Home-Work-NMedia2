@@ -9,10 +9,13 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -114,6 +117,7 @@ class FeedFragment : Fragment() {
                     return when (menuItem.itemId) {
                         R.id.singIn -> {
                             findNavController().navigate(R.id.action_feedFragment_to_loginFragment)
+                            adapter.refresh()
                             true
                         }
                         R.id.singUp -> {
@@ -132,6 +136,7 @@ class FeedFragment : Fragment() {
                                 .setCancelable(true)
                                 .create()
                                 .show()
+                            adapter.refresh()
                             true
                         }
                         else -> false
@@ -153,32 +158,43 @@ class FeedFragment : Fragment() {
             }
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { data ->
-            adapter.submitList(data.posts
-                .filter { post -> !post.hidden }
-            )
-            binding.emptyText.isVisible = data.empty
+        lifecycleScope.launchWhenCreated {
+            viewModel.data.collectLatest {
+                adapter.submitData(it)
+            }
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-
-            if (state == 1) binding.newPostButton.visibility = View.VISIBLE
-
-            println("Newer: $state")
+        lifecycleScope.launchWhenCreated{
+            adapter.loadStateFlow.collectLatest { state ->
+                binding.swiperefresh.isRefreshing =
+                state.refresh is LoadState.Loading
+                        || state.append is LoadState.Loading
+                        || state.prepend is LoadState.Loading
+            }
         }
+ //       viewModel.data.observe(viewLifecycleOwner) { data ->
+ //           adapter.submitList(data.posts
+ //               .filter { post -> !post.hidden }
+ //           )
+ //           binding.emptyText.isVisible = data.empty
+ //       }
+//
+ //      viewModel.newerCount.observe(viewLifecycleOwner) { state -
+ //          if (state == 1) binding.newPostButton.visibility = View.VISIBL
+ //          println("Newer: $state")
+ //      }
 
 
 
-        binding.newPostButton.setOnClickListener {
-            it.visibility = View.GONE
-            viewModel.viewNewPost()
-            binding.list.smoothScrollToPosition(0)
-        }
+  //      binding.newPostButton.setOnClickListener {
+  //          it.visibility = View.GONE
+ //           viewModel.viewNewPost()
+   //         binding.list.smoothScrollToPosition(0)
+   //     }
 
-        binding.swiperefresh.setOnRefreshListener {
-            binding.newPostButton.visibility = View.GONE
-            viewModel.refreshPosts()
-        }
+
+
+        binding.swiperefresh.setOnRefreshListener(adapter::refresh)
 
         binding.fab.setOnClickListener {
             if(authViewModel.isAuthorised) {
