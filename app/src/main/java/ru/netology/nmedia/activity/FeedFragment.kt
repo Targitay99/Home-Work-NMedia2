@@ -104,7 +104,7 @@ class FeedFragment : Fragment() {
 
         var currentMenuProvider: MenuProvider? = null
         authViewModel.authLiveData.observe(viewLifecycleOwner) { authModel ->
-
+            adapter.refresh()
             currentMenuProvider?.let(requireActivity()::removeMenuProvider)
             requireActivity().addMenuProvider(object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -117,7 +117,7 @@ class FeedFragment : Fragment() {
                     return when (menuItem.itemId) {
                         R.id.singIn -> {
                             findNavController().navigate(R.id.action_feedFragment_to_loginFragment)
-                            adapter.refresh()
+//                            adapter.refresh()
                             true
                         }
                         R.id.singUp -> {
