@@ -43,6 +43,10 @@
     <string name="yes">да</string>
     <string name="passwords_dont_match">пароли не совпад</string>
     <string name="Invalid_username_or_password">Не верный логин или пароль.</string>
+    <string name="ad_description">Реклама</string>
+    <string name="last_week">на прошлой неделе</string>
+    <string name="today">сегодня</string>
+    <string name="yesterday">вчера</string>
 
 
 </resources>

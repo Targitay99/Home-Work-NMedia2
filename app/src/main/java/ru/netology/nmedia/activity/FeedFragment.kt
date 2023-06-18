@@ -2,8 +2,10 @@ package ru.netology.nmedia.activity
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.*
+import androidx.annotation.RequiresApi
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -14,10 +16,11 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+
 import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
-import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.adapter.PostLoadingStateAdapter
+
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -42,6 +45,7 @@ class FeedFragment : Fragment() {
         var Bundle.urlArg: String? by StringArg
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,7 +53,7 @@ class FeedFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        val adapter = PostsAdapter(object : OnInteractionListener {
+        val adapter = PostsAdapter(object : PostsAdapter.OnInteractionListener {
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
             }
@@ -70,7 +74,7 @@ class FeedFragment : Fragment() {
                                 R.id.action_feedFragment_to_loginFragment
                             )
                         }
-                        .setNegativeButton(R.string.cancel) {dialog, _->
+                        .setNegativeButton(R.string.cancel) { dialog, _ ->
                             dialog.cancel()
                         }
                         .setCancelable(true)
@@ -130,7 +134,7 @@ class FeedFragment : Fragment() {
                                 .setPositiveButton(R.string.yes) { _, _ ->
                                     appAuth.removeUser()
                                 }
-                                .setNegativeButton(R.string.cancel) {dialog, _->
+                                .setNegativeButton(R.string.cancel) { dialog, _ ->
                                     dialog.cancel()
                                 }
                                 .setCancelable(true)
@@ -158,48 +162,40 @@ class FeedFragment : Fragment() {
             }
         }
 
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadingStateAdapter(object :PostLoadingStateAdapter.OnInteractionListener {
+                override fun onRetry() {
+                    adapter.retry()
+                }
+            }),
+            footer = PostLoadingStateAdapter(object : PostLoadingStateAdapter.OnInteractionListener {
+                override fun onRetry() {
+                    adapter.retry()
+                }
+            }),
+        )
+
         lifecycleScope.launchWhenCreated {
             viewModel.data.collectLatest {
                 adapter.submitData(it)
             }
         }
 
-        lifecycleScope.launchWhenCreated{
+        lifecycleScope.launchWhenCreated {
             adapter.loadStateFlow.collectLatest { state ->
                 binding.swiperefresh.isRefreshing =
-                state.refresh is LoadState.Loading
-                        || state.append is LoadState.Loading
-                        || state.prepend is LoadState.Loading
+                    state.refresh is LoadState.Loading
+       //                    || state.append is LoadState.Loading
+       //                    || state.prepend is LoadState.Loading
             }
         }
- //       viewModel.data.observe(viewLifecycleOwner) { data ->
- //           adapter.submitList(data.posts
- //               .filter { post -> !post.hidden }
- //           )
- //           binding.emptyText.isVisible = data.empty
- //       }
-//
- //      viewModel.newerCount.observe(viewLifecycleOwner) { state -
- //          if (state == 1) binding.newPostButton.visibility = View.VISIBL
- //          println("Newer: $state")
- //      }
-
-
-
-  //      binding.newPostButton.setOnClickListener {
-  //          it.visibility = View.GONE
- //           viewModel.viewNewPost()
-   //         binding.list.smoothScrollToPosition(0)
-   //     }
-
-
 
         binding.swiperefresh.setOnRefreshListener(adapter::refresh)
 
         binding.fab.setOnClickListener {
-            if(authViewModel.isAuthorised) {
+            if (authViewModel.isAuthorised) {
                 findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
-            }else{
+            } else {
                 AlertDialog.Builder(context)
                     .setMessage(R.string.only_for_registered_users)
                     .setPositiveButton(R.string.singUp) { _, _ ->
@@ -212,7 +208,7 @@ class FeedFragment : Fragment() {
                             R.id.action_feedFragment_to_loginFragment
                         )
                     }
-                    .setNegativeButton(R.string.cancel) {dialog, _->
+                    .setNegativeButton(R.string.cancel) { dialog, _ ->
                         dialog.cancel()
                     }
                     .setCancelable(true)

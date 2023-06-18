@@ -52,4 +52,9 @@
     <string name="yes">yes</string>
     <string name="passwords_dont_match">passwords don\'t match</string>
     <string name="Invalid_username_or_password">Invalid username or password.</string>
+    <string name="ad_description">ad</string>
+    <string name="last_week" translatable="false">last week</string>
+    <string name="today">today</string>
+    <string name="yesterday">yesterday</string>
+    <string name="test" translatable="false">teststroki</string>
 </resources>
